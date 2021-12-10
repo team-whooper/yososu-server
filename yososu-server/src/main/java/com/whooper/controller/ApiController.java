@@ -122,7 +122,7 @@ public class ApiController {
         YososuResponse response = objectMapper.readValue(sb.toString(), YososuResponse.class);
 
 
-        System.out.println(sb.toString());
+        //System.out.println(sb.toString());
         System.out.println("Match Count: " + response.getMatchCount());
         System.out.println("Total Count: " + response.getTotalCount());
 
