@@ -11,6 +11,8 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Collections;
 
+
+@CrossOrigin(origins = "http://localhost:3000/")
 @RestController
 public class ApiController {
 
