@@ -20,7 +20,7 @@ public class ApiController {
 
 
     // 재고량으로 정렬 (default)
-    @GetMapping("/getInventoriesInStockOrder")
+    @GetMapping("/inventories/stock")
     public @ResponseBody YososuResponse getInventoriesInStockOrder(@RequestParam(required=false) String addr) throws IOException {
 
         StringBuilder urlBuilder = new StringBuilder(baseUrl+"/uws/v1/inventory");
@@ -51,7 +51,7 @@ public class ApiController {
 
 
     // 가격으로 정렬
-    @GetMapping("/getInventoriesInPriceOrder")
+    @GetMapping("/inventories/price")
     public @ResponseBody YososuResponse getInventoriesInPriceOrder(@RequestParam(required=false) String addr) throws IOException {
 
         StringBuilder urlBuilder = new StringBuilder(baseUrl+"/uws/v1/inventory");
