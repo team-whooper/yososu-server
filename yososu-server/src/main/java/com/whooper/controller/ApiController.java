@@ -9,112 +9,91 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.Collections;
 
 @RestController
 public class ApiController {
 
     private static String baseUrl = "https://api.odcloud.kr/api";
     private static String serviceKey = "cMLDVXTfZgJjwZAXo0nJhL6qkwytv3Tkvw2fywJZ3cSf68LQ2iZ9q7nPaP3T9AZRzEGgF4ToSPdNHoMG3YaJgQ%3D%3D";
+    private static final int TOTALCOUNT = 483; // 요소수거점주유소 수
 
 
-    // 모든 주유소 조회
-    @GetMapping("/getInventories")
-    public @ResponseBody YososuResponse getInventories() throws IOException {
-
-        StringBuilder urlBuilder = new StringBuilder(baseUrl+"/uws/v1/inventory");
-        urlBuilder.append("?" + URLEncoder.encode("page", "UTF-8") + "=1");
-        urlBuilder.append("&" + URLEncoder.encode("perPage", "UTF-8") + "=365");
-        urlBuilder.append("&" + URLEncoder.encode("serviceKey", "UTF-8") + "=" + serviceKey);
-
-        YososuResponse  response = callApi(urlBuilder.toString());
-
-        return response;
-    }
-
-
-
-    // 주소로 검색
-    @GetMapping("/searchByAddr")
-    public @ResponseBody YososuResponse searchByAddr(@RequestParam String addr) throws IOException {
-
-        StringBuilder urlBuilder = new StringBuilder(baseUrl + "/uws/v1/inventory");
-        urlBuilder.append("?" + URLEncoder.encode("page", "UTF-8") + "=1");
-        urlBuilder.append("&" + URLEncoder.encode("perPage", "UTF-8") + "=365");
-        urlBuilder.append("&" + URLEncoder.encode("cond[addr::LIKE]", "UTF-8") + "=" + addr);
-        urlBuilder.append("&" + URLEncoder.encode("serviceKey", "UTF-8") + "=" + serviceKey);
-
-
-        YososuResponse response = callApi(urlBuilder.toString());
-
-        return response;
-    }
-
-
-
-    // 모든 주유소 재고량으로 정렬
+    // 재고량으로 정렬 (default)
     @GetMapping("/getInventoriesInStockOrder")
     public @ResponseBody YososuResponse getInventoriesInStockOrder(@RequestParam(required=false) String addr) throws IOException {
 
         StringBuilder urlBuilder = new StringBuilder(baseUrl+"/uws/v1/inventory");
         urlBuilder.append("?" + URLEncoder.encode("page", "UTF-8") + "=1");
-        urlBuilder.append("&" + URLEncoder.encode("perPage", "UTF-8") + "=365");
-        urlBuilder.append("&" + URLEncoder.encode("cond[addr::LIKE]", "UTF-8") + "=" + addr);
+        urlBuilder.append("&" + URLEncoder.encode("perPage", "UTF-8") + "=" + TOTALCOUNT);
+        if (addr != null) {
+            urlBuilder.append("&" + URLEncoder.encode("cond[addr::LIKE]", "UTF-8") + "=" + addr);
+        }
         urlBuilder.append("&" + URLEncoder.encode("serviceKey", "UTF-8") + "=" + serviceKey);
 
         YososuResponse  response = callApi(urlBuilder.toString());
-        
-        
-        // 정렬
+
+
+        // 재고량으로 정렬
+        Collections.sort(response.getData(), (o1, o2) -> {
+            if (Integer.parseInt(o1.getInventory().trim()) > Integer.parseInt(o2.getInventory().trim())) {
+                return -1;
+            } else if(Integer.parseInt(o1.getInventory().trim()) < Integer.parseInt(o2.getInventory().trim())) {
+                return 1;
+            } else {
+                return 0;
+            }
+        });
         
 
         return response;
     }
 
 
-    // 모든 주유소 가격으로 정렬
+    // 가격으로 정렬
     @GetMapping("/getInventoriesInPriceOrder")
-    public @ResponseBody YososuResponse getInventoriesInPriceOrder() throws IOException {
+    public @ResponseBody YososuResponse getInventoriesInPriceOrder(@RequestParam(required=false) String addr) throws IOException {
 
         StringBuilder urlBuilder = new StringBuilder(baseUrl+"/uws/v1/inventory");
         urlBuilder.append("?" + URLEncoder.encode("page", "UTF-8") + "=1");
-        urlBuilder.append("&" + URLEncoder.encode("perPage", "UTF-8") + "=365");
+        urlBuilder.append("&" + URLEncoder.encode("perPage", "UTF-8") + "=" + TOTALCOUNT);
+        if (addr != null) {
+            urlBuilder.append("&" + URLEncoder.encode("cond[addr::LIKE]", "UTF-8") + "=" + addr);
+        }
         urlBuilder.append("&" + URLEncoder.encode("serviceKey", "UTF-8") + "=" + serviceKey);
 
         YososuResponse  response = callApi(urlBuilder.toString());
 
-        return response;
-    }
-    
 
-    // 주소검색결과 재고량으로 정렬
-    @GetMapping("/searchByAddrInStockOrder")
-    public @ResponseBody YososuResponse searchByAddrInStockOrder() throws IOException {
+        // 가격으로 정렬
+        Collections.sort(response.getData(), (o1, o2) -> {
+//            try {
+//                if (Integer.parseInt(o1.getPrice().trim()) > Integer.parseInt(o2.getPrice().trim())) {
+//                    return 1;
+//                } else if(Integer.parseInt(o1.getPrice().trim()) < Integer.parseInt(o2.getPrice().trim())) {
+//                    return -1;
+//                } else {
+//                    return 0;
+//                }
+//            } catch (NullPointerException e) {
+//                System.out.println("NullPointerException: " + e.getStackTrace());
+//            } finally {
+//                return 0;
+//            }
 
-        StringBuilder urlBuilder = new StringBuilder(baseUrl+"/uws/v1/inventory");
-        urlBuilder.append("?" + URLEncoder.encode("page", "UTF-8") + "=1");
-        urlBuilder.append("&" + URLEncoder.encode("perPage", "UTF-8") + "=365");
-        urlBuilder.append("&" + URLEncoder.encode("serviceKey", "UTF-8") + "=" + serviceKey);
 
-        YososuResponse  response = callApi(urlBuilder.toString());
+            if (Integer.parseInt(o1.getPrice().trim()) > Integer.parseInt(o2.getPrice().trim())) {
+                return 1;
+            } else if(Integer.parseInt(o1.getPrice().trim()) < Integer.parseInt(o2.getPrice().trim())) {
+                return -1;
+            } else {
+                return 0;
+            }
 
-        return response;
-    }
-
-
-    // 주소검색결과 주소로 정렬
-    @GetMapping("/searchByAddrInPriceOrder")
-    public @ResponseBody YososuResponse searchByAddrInPriceOrder() throws IOException {
-
-        StringBuilder urlBuilder = new StringBuilder(baseUrl+"/uws/v1/inventory");
-        urlBuilder.append("?" + URLEncoder.encode("page", "UTF-8") + "=1");
-        urlBuilder.append("&" + URLEncoder.encode("perPage", "UTF-8") + "=365");
-        urlBuilder.append("&" + URLEncoder.encode("serviceKey", "UTF-8") + "=" + serviceKey);
-
-        YososuResponse  response = callApi(urlBuilder.toString());
+        });
 
         return response;
     }
-
 
 
     public YososuResponse callApi(String url_str) throws IOException {
@@ -144,7 +123,8 @@ public class ApiController {
 
 
         System.out.println(sb.toString());
-        System.out.println(response.getTotalCount());
+        System.out.println("Match Count: " + response.getMatchCount());
+        System.out.println("Total Count: " + response.getTotalCount());
 
         return response;
     }
