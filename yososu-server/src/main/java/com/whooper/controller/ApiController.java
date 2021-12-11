@@ -18,12 +18,13 @@ public class ApiController {
 
     private static String baseUrl = "https://api.odcloud.kr/api";
     private static String serviceKey = "cMLDVXTfZgJjwZAXo0nJhL6qkwytv3Tkvw2fywJZ3cSf68LQ2iZ9q7nPaP3T9AZRzEGgF4ToSPdNHoMG3YaJgQ%3D%3D";
-    private static final int TOTALCOUNT = 483; // 요소수거점주유소 수
+    private static int TOTALCOUNT = 1; // 요소수거점주유소 수
 
 
     // 재고량으로 정렬 (default)
     @GetMapping("/inventories/stock")
     public @ResponseBody YososuResponse getInventoriesInStockOrder(@RequestParam(required=false) String addr) throws IOException {
+        setTotalCount();
 
         StringBuilder urlBuilder = new StringBuilder(baseUrl+"/uws/v1/inventory");
         urlBuilder.append("?" + URLEncoder.encode("page", "UTF-8") + "=1");
@@ -55,6 +56,7 @@ public class ApiController {
     // 가격으로 정렬
     @GetMapping("/inventories/price")
     public @ResponseBody YososuResponse getInventoriesInPriceOrder(@RequestParam(required=false) String addr) throws IOException {
+        setTotalCount();
 
         StringBuilder urlBuilder = new StringBuilder(baseUrl+"/uws/v1/inventory");
         urlBuilder.append("?" + URLEncoder.encode("page", "UTF-8") + "=1");
@@ -129,6 +131,17 @@ public class ApiController {
         System.out.println("Total Count: " + response.getTotalCount());
 
         return response;
+    }
+
+    public void setTotalCount() throws IOException {
+        StringBuilder urlBuilder = new StringBuilder(baseUrl+"/uws/v1/inventory");
+        urlBuilder.append("?" + URLEncoder.encode("page", "UTF-8") + "=1");
+        urlBuilder.append("&" + URLEncoder.encode("perPage", "UTF-8") + "=1");
+        urlBuilder.append("&" + URLEncoder.encode("serviceKey", "UTF-8") + "=" + serviceKey);
+
+        YososuResponse  response = callApi(urlBuilder.toString());
+
+        TOTALCOUNT = response.getTotalCount();
     }
 
 }
