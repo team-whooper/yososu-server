@@ -10,7 +10,10 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.util.Date;
 
 
 @CrossOrigin("*")
@@ -24,7 +27,7 @@ public class ApiController {
 
     // 재고량으로 정렬 (default)
     @GetMapping("/inventories/stock")
-    public @ResponseBody YososuResponse getInventoriesInStockOrder(@RequestParam(required=false) String addr) throws IOException {
+    public @ResponseBody YososuResponse getInventoriesInStockOrder(@RequestParam(required=false) String addr) throws Exception {
         System.out.println("Request URL: /inventories/stock?addr=" + addr);
 
         setTotalCount();
@@ -59,7 +62,7 @@ public class ApiController {
 
     // 가격으로 정렬
     @GetMapping("/inventories/price")
-    public @ResponseBody YososuResponse getInventoriesInPriceOrder(@RequestParam(required=false) String addr) throws IOException {
+    public @ResponseBody YososuResponse getInventoriesInPriceOrder(@RequestParam(required=false) String addr) throws Exception {
         System.out.println("Request URL: /inventories/price?addr=" + addr);
 
         setTotalCount();
@@ -109,7 +112,7 @@ public class ApiController {
     }
 
 
-    public YososuResponse callApi(String url_str) throws IOException {
+    public YososuResponse callApi(String url_str) throws Exception {
         URL url = new URL(url_str);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");
@@ -144,11 +147,10 @@ public class ApiController {
 
             // 가격정보가 null이거나 숫자가 아니면 "정보없음"으로 바꿔서 내려줌
             if (!isProper(inventory.getPrice())) {
-                System.out.println("price: " + inventory.getPrice());
                 inventory.setPrice("정보없음");
             }
 
-
+            inventory.setRegDt(formatRegDt(inventory.getRegDt()));
 
         }
 
@@ -157,7 +159,7 @@ public class ApiController {
         return response;
     }
 
-    public void setTotalCount() throws IOException {
+    public void setTotalCount() throws Exception {
         StringBuilder urlBuilder = new StringBuilder(baseUrl+"/uws/v1/inventory");
         urlBuilder.append("?" + URLEncoder.encode("page", "UTF-8") + "=1");
         urlBuilder.append("&" + URLEncoder.encode("perPage", "UTF-8") + "=1");
@@ -187,6 +189,35 @@ public class ApiController {
             } else {
                 return true;
             }
+        }
+
+    }
+
+
+    // 업데이트 일시 포맷팅
+    public String formatRegDt(String regDt) throws ParseException {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+        Date today = new Date();
+        Date registerDate = format.parse(regDt);
+
+        long diff = today.getTime() - registerDate.getTime();
+        int sec = (int)(diff/1000); // 초
+        int min = (sec/60); // 분
+        int hour = min/60; // 시
+        int day = hour/24; // 일
+
+
+        if (day != 0) {
+            return day + "일 전";
+        } else if (hour != 0) {
+            return hour + "시간 전";
+        } else if (min != 0) {
+            return min + "분 전";
+        } else if (sec != 0) {
+            return sec + "초 전";
+        } else {
+            return "방금";
         }
 
     }
