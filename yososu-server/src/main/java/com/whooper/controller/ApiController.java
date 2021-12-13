@@ -1,6 +1,7 @@
 package com.whooper.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.whooper.model.Inventory;
 import com.whooper.model.YososuResponse;
 import org.springframework.web.bind.annotation.*;
 import java.io.BufferedReader;
@@ -112,7 +113,11 @@ public class ApiController {
 
         ObjectMapper objectMapper = new ObjectMapper();
         YososuResponse response = objectMapper.readValue(sb.toString(), YososuResponse.class);
-
+        for (Inventory inventory: response.getData()) {
+            if (inventory.getOpenTime() == null) {
+                inventory.setOpenTime("정보없음");
+            }
+        }
 
         System.out.println("Match Count: " + response.getMatchCount());
 
