@@ -24,6 +24,8 @@ public class ApiController {
     // 재고량으로 정렬 (default)
     @GetMapping("/inventories/stock")
     public @ResponseBody YososuResponse getInventoriesInStockOrder(@RequestParam(required=false) String addr) throws IOException {
+        System.out.println("Request URL: /inventories/stock?addr=" + addr);
+
         setTotalCount();
 
         StringBuilder urlBuilder = new StringBuilder(baseUrl+"/uws/v1/inventory");
@@ -56,6 +58,8 @@ public class ApiController {
     // 가격으로 정렬
     @GetMapping("/inventories/price")
     public @ResponseBody YososuResponse getInventoriesInPriceOrder(@RequestParam(required=false) String addr) throws IOException {
+        System.out.println("Request URL: /inventories/price?addr=" + addr);
+
         setTotalCount();
 
         StringBuilder urlBuilder = new StringBuilder(baseUrl+"/uws/v1/inventory");
@@ -71,21 +75,6 @@ public class ApiController {
 
         // 가격으로 정렬
         Collections.sort(response.getData(), (o1, o2) -> {
-//            try {
-//                if (Integer.parseInt(o1.getPrice().trim()) > Integer.parseInt(o2.getPrice().trim())) {
-//                    return 1;
-//                } else if(Integer.parseInt(o1.getPrice().trim()) < Integer.parseInt(o2.getPrice().trim())) {
-//                    return -1;
-//                } else {
-//                    return 0;
-//                }
-//            } catch (NullPointerException e) {
-//                System.out.println("NullPointerException: " + e.getStackTrace());
-//            } finally {
-//                return 0;
-//            }
-
-
             if (Integer.parseInt(o1.getPrice().trim()) > Integer.parseInt(o2.getPrice().trim())) {
                 return 1;
             } else if(Integer.parseInt(o1.getPrice().trim()) < Integer.parseInt(o2.getPrice().trim())) {
@@ -93,7 +82,6 @@ public class ApiController {
             } else {
                 return 0;
             }
-
         });
 
         return response;
@@ -126,9 +114,7 @@ public class ApiController {
         YososuResponse response = objectMapper.readValue(sb.toString(), YososuResponse.class);
 
 
-        //System.out.println(sb.toString());
         System.out.println("Match Count: " + response.getMatchCount());
-        System.out.println("Total Count: " + response.getTotalCount());
 
         return response;
     }
