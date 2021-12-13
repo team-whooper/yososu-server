@@ -42,6 +42,7 @@ public class ApiController {
 
         // 재고량으로 정렬
         Collections.sort(response.getData(), (o1, o2) -> {
+
             if (Integer.parseInt(o1.getInventory().trim()) > Integer.parseInt(o2.getInventory().trim())) {
                 return -1;
             } else if(Integer.parseInt(o1.getInventory().trim()) < Integer.parseInt(o2.getInventory().trim())) {
@@ -76,13 +77,32 @@ public class ApiController {
 
         // 가격으로 정렬
         Collections.sort(response.getData(), (o1, o2) -> {
-            if (Integer.parseInt(o1.getPrice().trim()) > Integer.parseInt(o2.getPrice().trim())) {
-                return 1;
-            } else if(Integer.parseInt(o1.getPrice().trim()) < Integer.parseInt(o2.getPrice().trim())) {
-                return -1;
+            String str1 = o1.getPrice().trim();
+            String str2 = o2.getPrice().trim();
+
+            if (str1 == "정보없음") {
+                if (str2 == "정보없음") {
+                    return 0;
+                } else {
+                    return 1;
+                }
             } else {
-                return 0;
+                if (str2 == "정보없음") {
+                    return -1;
+                } else {
+                    int price1 = Integer.parseInt(str1);
+                    int price2 = Integer.parseInt(str2);
+
+                    if (price1 > price2) {
+                        return 1;
+                    } else if(price1 < price2) {
+                        return -1;
+                    } else {
+                        return 0;
+                    }
+                }
             }
+
         });
 
         return response;
@@ -113,10 +133,23 @@ public class ApiController {
 
         ObjectMapper objectMapper = new ObjectMapper();
         YososuResponse response = objectMapper.readValue(sb.toString(), YososuResponse.class);
+
+
         for (Inventory inventory: response.getData()) {
+
+            // 영업시간정보가 null이면 "정보없음"으로 바꿔서 내려줌
             if (inventory.getOpenTime() == null) {
                 inventory.setOpenTime("정보없음");
             }
+
+            // 가격정보가 null이거나 숫자가 아니면 "정보없음"으로 바꿔서 내려줌
+            if (!isProper(inventory.getPrice())) {
+                System.out.println("price: " + inventory.getPrice());
+                inventory.setPrice("정보없음");
+            }
+
+
+
         }
 
         System.out.println("Match Count: " + response.getMatchCount());
@@ -133,6 +166,29 @@ public class ApiController {
         YososuResponse  response = callApi(urlBuilder.toString());
 
         TOTALCOUNT = response.getTotalCount();
+    }
+
+    // 가격정보가 null이거나 숫자가 아니면 false 리턴
+    public Boolean isProper(String price) {
+        boolean flag = true;
+        if (price == null) {
+            return false;
+        } else if (price.equals("0")) {
+            return false;
+        } else {
+            char[] charArr = price.toCharArray();
+            for (char c : charArr) {
+                if (!Character.isDigit(c)) {
+                    flag = false;
+                }
+            }
+            if (!flag) {
+                return false;
+            } else {
+                return true;
+            }
+        }
+
     }
 
 }
