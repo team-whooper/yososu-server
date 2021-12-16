@@ -1,0 +1,13 @@
+server:
+  port: 8080
+  servlet:
+    session:
+      timeout: 30
+  ssl:
+    enabled: true
+    key-alias: yososu-keystore
+    key-store: yososu-keystore.pkcs12
+    key-store-password: '1q2w3e4r'
+    key-password: '1q2w3e4r'
+    trust-store: yososu-trust.pkcs12
+    trust-store-password: '1q2w3e4r'
