@@ -6,15 +6,15 @@ import com.whooper.model.YososuResponse;
 import org.springframework.web.bind.annotation.*;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 
 
 //@CrossOrigin("*")
@@ -33,15 +33,19 @@ public class ApiController {
 
         setTotalCount();
 
-        StringBuilder urlBuilder = new StringBuilder(baseUrl+"/uws/v1/inventory");
-        urlBuilder.append("?" + URLEncoder.encode("page", "UTF-8") + "=1");
-        urlBuilder.append("&" + URLEncoder.encode("perPage", "UTF-8") + "=" + TOTALCOUNT);
-        if (addr != null) {
-            urlBuilder.append("&" + URLEncoder.encode("cond[addr::LIKE]", "UTF-8") + "=" + addr);
-        }
-        urlBuilder.append("&" + URLEncoder.encode("serviceKey", "UTF-8") + "=" + serviceKey);
+        YososuResponse response;
 
-        YososuResponse  response = callApi(urlBuilder.toString());
+        if (addr != null) {
+            response = callApiWithAddr(addr);
+        } else {
+            StringBuilder urlBuilder = new StringBuilder(baseUrl+"/uws/v1/inventory");
+            urlBuilder.append("?" + URLEncoder.encode("page", "UTF-8") + "=1");
+            urlBuilder.append("&" + URLEncoder.encode("perPage", "UTF-8") + "=" + TOTALCOUNT);
+            urlBuilder.append("&" + URLEncoder.encode("serviceKey", "UTF-8") + "=" + serviceKey);
+
+            response = callApi(urlBuilder.toString());
+        }
+
 
 
         // 재고량으로 정렬
@@ -68,15 +72,18 @@ public class ApiController {
 
         setTotalCount();
 
-        StringBuilder urlBuilder = new StringBuilder(baseUrl+"/uws/v1/inventory");
-        urlBuilder.append("?" + URLEncoder.encode("page", "UTF-8") + "=1");
-        urlBuilder.append("&" + URLEncoder.encode("perPage", "UTF-8") + "=" + TOTALCOUNT);
-        if (addr != null) {
-            urlBuilder.append("&" + URLEncoder.encode("cond[addr::LIKE]", "UTF-8") + "=" + addr);
-        }
-        urlBuilder.append("&" + URLEncoder.encode("serviceKey", "UTF-8") + "=" + serviceKey);
+        YososuResponse response;
 
-        YososuResponse  response = callApi(urlBuilder.toString());
+        if (addr != null) {
+            response = callApiWithAddr(addr);
+        } else {
+            StringBuilder urlBuilder = new StringBuilder(baseUrl+"/uws/v1/inventory");
+            urlBuilder.append("?" + URLEncoder.encode("page", "UTF-8") + "=1");
+            urlBuilder.append("&" + URLEncoder.encode("perPage", "UTF-8") + "=" + TOTALCOUNT);
+            urlBuilder.append("&" + URLEncoder.encode("serviceKey", "UTF-8") + "=" + serviceKey);
+
+            response = callApi(urlBuilder.toString());
+        }
 
 
         // 가격으로 정렬
@@ -259,6 +266,59 @@ public class ApiController {
 
         return flag;
 
+    }
+
+
+
+    public YososuResponse callApiWithAddr(String addr) throws Exception {
+        /** HashMap 초기화 **/
+        HashMap<String, ArrayList<String>> addrMap = new HashMap<>();
+        addrMap.put("강원도", new ArrayList<String>(){{add("강원");}});
+        addrMap.put("경기도", new ArrayList<String>(){{add("경기");}});
+        addrMap.put("경상남도", new ArrayList<String>(){{add("경상남도"); add("경남");}});
+        addrMap.put("경상북도", new ArrayList<String>(){{add("경상북도"); add("경북");}});
+        addrMap.put("대구광역시", new ArrayList<String>(){{add("대구");}});
+        addrMap.put("대전광역시", new ArrayList<String>(){{add("대전");}});
+        addrMap.put("부산광역시", new ArrayList<String>(){{add("부산");}});
+        addrMap.put("서울특별시", new ArrayList<String>(){{add("서울");}});
+        addrMap.put("세종자치시", new ArrayList<String>(){{add("세종");}});
+        addrMap.put("울산광역시", new ArrayList<String>(){{add("울산");}});
+        addrMap.put("인천광역시", new ArrayList<String>(){{add("인천");}});
+        addrMap.put("전라남도", new ArrayList<String>(){{add("전라남도"); add("전남");}});
+        addrMap.put("전라북도", new ArrayList<String>(){{add("전라북도"); add("전북");}});
+        addrMap.put("제주특별자치도", new ArrayList<String>(){{add("제주");}});
+        addrMap.put("충청남도", new ArrayList<String>(){{add("충청남도"); add("충남");}});
+        addrMap.put("충청북도", new ArrayList<String>(){{add("충청북도"); add("충북");}});
+
+
+        YososuResponse response;
+
+        StringBuilder urlBuilder = new StringBuilder(baseUrl+"/uws/v1/inventory");
+        urlBuilder.append("?" + URLEncoder.encode("page", "UTF-8") + "=1");
+        urlBuilder.append("&" + URLEncoder.encode("perPage", "UTF-8") + "=" + TOTALCOUNT);
+        urlBuilder.append("&" + URLEncoder.encode("serviceKey", "UTF-8") + "=" + serviceKey);
+
+        if (addrMap.get(addr) == null) {
+            urlBuilder.append("&" + URLEncoder.encode("cond[addr::LIKE]", "UTF-8") + "=" + addr);
+            response = callApi(urlBuilder.toString());
+        } else {
+            if (addrMap.get(addr).size() == 1) {
+                urlBuilder.append("&" + URLEncoder.encode("cond[addr::LIKE]", "UTF-8") + "=" + addrMap.get(addr).get(0));
+                response = callApi(urlBuilder.toString());
+            } else { //addrMap.get(addr).size() == 2
+                urlBuilder.append("&" + URLEncoder.encode("cond[addr::LIKE]", "UTF-8") + "=" + addrMap.get(addr).get(0));
+                response = callApi(urlBuilder.toString());
+
+                urlBuilder.replace(urlBuilder.lastIndexOf("=") + 1, urlBuilder.length(), addrMap.get(addr).get(1));
+
+                YososuResponse tempResponse = callApi(urlBuilder.toString());
+                response.setMatchCount(response.getMatchCount() + tempResponse.getMatchCount());
+                response.setCurrentCount(response.getCurrentCount() + tempResponse.getCurrentCount());
+                Collections.addAll(response.getData(), tempResponse.getData().toArray(new Inventory[tempResponse.getData().size()]));
+            }
+        }
+
+        return response;
     }
 
 
