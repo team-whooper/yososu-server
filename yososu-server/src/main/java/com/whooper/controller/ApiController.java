@@ -6,9 +6,11 @@ import com.whooper.model.YososuResponse;
 import org.springframework.web.bind.annotation.*;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
@@ -145,11 +147,45 @@ public class ApiController {
             }
 
             // 가격정보가 null이거나 숫자가 아니면 "정보없음"으로 바꿔서 내려줌
-            if (!isProper(inventory.getPrice())) {
+            if (!isProperPrice(inventory.getPrice())) {
                 inventory.setPrice("정보없음");
             }
 
+            // 업데이트 날짜 형식 바꿔서 내려줌
             inventory.setRegDt(formatRegDt(inventory.getRegDt()));
+
+
+
+/**
+
+            // 위도, 경도 데이터가 지수형식인 경우 바꿔서 스트링으로 내려줌
+            if (!isNumberStr(inventory.getLat())) {
+                String str = inventory.getLat();
+
+                System.out.println(str);
+                str = str.replace("-", "");
+                System.out.println(str);
+
+                double num = Double.parseDouble(str);
+                System.out.println("num: " + num);
+
+                NumberFormat numberFormat = NumberFormat.getInstance();
+                numberFormat.setGroupingUsed(false);
+
+                System.out.println("convert_num: " + numberFormat.format(num));
+
+                BigDecimal bigDecimal = BigDecimal.valueOf(Double.parseDouble(str));
+                System.out.println(bigDecimal.toString());
+                bigDecimal = new BigDecimal(Double.parseDouble(inventory.getLat()));
+                System.out.println(bigDecimal.toString());
+            }
+
+            if (!isNumberStr(inventory.getLng())) {
+
+            }
+
+ **/
+
 
         }
 
@@ -170,26 +206,14 @@ public class ApiController {
     }
 
     // 가격정보가 null이거나 숫자가 아니면 false 리턴
-    public Boolean isProper(String price) {
-        boolean flag = true;
+    public Boolean isProperPrice(String price) {
         if (price == null) {
             return false;
         } else if (price.equals("0")) {
             return false;
         } else {
-            char[] charArr = price.toCharArray();
-            for (char c : charArr) {
-                if (!Character.isDigit(c)) {
-                    flag = false;
-                }
-            }
-            if (!flag) {
-                return false;
-            } else {
-                return true;
-            }
+            return isNumberStr(price);
         }
-
     }
 
 
@@ -220,5 +244,22 @@ public class ApiController {
         }
 
     }
+
+
+    // 숫자인지 아닌지
+    public Boolean isNumberStr(String str) {
+        boolean flag = true;
+
+        char[] charArr = str.toCharArray();
+        for (char c : charArr) {
+            if (!Character.isDigit(c)) {
+                flag = false;
+            }
+        }
+
+        return flag;
+
+    }
+
 
 }
