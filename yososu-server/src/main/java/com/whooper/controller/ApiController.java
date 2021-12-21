@@ -17,7 +17,7 @@ import java.util.Collections;
 import java.util.Date;
 
 
-@CrossOrigin("*")
+//@CrossOrigin("*")
 @RestController
 public class ApiController {
 
